@@ -1,12 +1,22 @@
 # Seedbox Filebrowser
 
-A secure, self-hosted filebrowser for seedboxes with:
-- 📺 Video screenshot generation
-- 📊 MediaInfo extraction to text files
-- 🖥️ Web-based GUI
-- 🔒 Security features
+A secure, self-hosted web-based file browser for seedboxes with video screenshot generation, MediaInfo metadata extraction, and BDInfo report parsing.
 
-## Quick Start
+<p class="description">Web-based file manager for media directories featuring video screenshot capture, comprehensive media metadata extraction via MediaInfo, and BDInfo Blu-ray report parsing with auto-detection.</p>
+
+<p><strong>Features:</strong></p>
+<ul>
+  <li>📁 Web-based file manager with responsive GUI</li>
+  <li>📸 Video screenshot generation with folder-named files</li>
+  <li>📊 MediaInfo extraction to .txt files</li>
+  <li>📀 BDInfo report auto-detection and parsing</li>
+  <li>🔒 Basic authentication via htpasswd</li>
+  <li>🌙 Dark mode support</li>
+  <li>🔄 Persistent login (Remember me)</li>
+  <li>📊 Auto-detected BDInfo reports in directory views</li>
+</ul>
+
+<h2>Quick Start</h2>
 
 ### Prerequisites
 - Docker
@@ -15,7 +25,6 @@ A secure, self-hosted filebrowser for seedboxes with:
 - ffmpeg
 
 ### Installation
-
 ```bash
 # Install Python dependencies
 pip install -r app/requirements.txt
@@ -26,7 +35,6 @@ chmod +x app/start.sh
 ```
 
 ### Configuration
-
 Set environment variables:
 - `BASE_DIR`: Root directory for file browsing (default: /srv)
 - `MI_PORT`: MediaInfo API port (default: 18082)
@@ -39,7 +47,7 @@ Set environment variables:
 ```
 GET /api/mi?file=<path>
 ```
-Returns JSON with raw mediainfo text and parsed media data.
+Returns JSON with raw mediainfo text and saves `.mediainfo.txt` next to the file.
 
 **Screenshots**
 ```
@@ -52,15 +60,19 @@ Parameters:
 - `tail`: Seconds from end to skip
 - `fmt`: Image format (jpg, png)
 
-### Security
+**BDInfo**
+```
+GET /api/bdinfo?file=<path>
+```
+Auto-detects and parses BDInfo reports from directory contents.
 
+### Security
 1. **Path traversal protection** - All file access validated against base directory
-2. **Authentication** - Built-in FileBrowser user management
+2. **Authentication** - Built-in FileBrowser user management with htpasswd
 3. **Localhost binding** - All APIs bind to 127.0.0.1 only
 4. **HTTPS** - Use reverse proxy for TLS
 
 ### Nginx Configuration
-
 ```nginx
 server {
     listen 443 ssl;
@@ -88,3 +100,5 @@ server {
     }
 }
 ```
+
+<p class="license">License: MIT</p>
