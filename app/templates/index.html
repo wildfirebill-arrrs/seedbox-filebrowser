@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Seedbox Filebrowser</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 2rem; }
+        .file-card { border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; border-radius: 4px; }
+        .btn { padding: 0.5rem 1rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Seedbox Filebrowser</h1>
+    <div id="files"></div>
+    
+    <script>
+        async function loadFiles() {
+            const res = await fetch('/api/mediainfo?file=' + encodeURIComponent(location.pathname));
+            const data = await res.json();
+            const container = document.getElementById('files');
+            container.innerHTML = '';
+            data.forEach(f => {
+                const card = document.createElement('div');
+                card.className = 'file-card';
+                card.innerHTML = `<span>${f.name}</span><button class="btn" onclick="getMediaInfo('${f.path}')">MediaInfo</button>`;
+                container.appendChild(card);
+            });
+        }
+        
+        async function getMediaInfo(path) {
+            const res = await fetch('/api/mediainfo?file=' + path);
+            const info = await res.json();
+            alert(info.info || 'No info found');
+        }
+        
+        loadFiles();
+    </script>
+</body>
+</html>

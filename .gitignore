@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*$py.class
+
+# Flask
+instance/
+.webassets-cache
+
+# Seedbox Filebrowser
+seedbox-fb/
+data/
+*.db
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Supervisor
+*.pid
+*.log
+
+# Docker
+.dockerignore
+
+# Environment
+.env
+
+# Media files that shouldn't be in git
+*.mp4
+*.mkv
+*.avi
+*.mov
+*.wmv
+
+# SQLite databases
+*.sqlite
+*.db
+
+# Virtual environment
+venv/
+env/
+.venv
+
+# Backup
+backup/

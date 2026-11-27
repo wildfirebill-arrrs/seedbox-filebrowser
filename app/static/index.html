@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html data-theme="light">
+<head>
+    <title>Seedbox Filebrowser</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        :root {
+            --bg: #f5f5f5;
+            --card-bg: #ffffff;
+            --text: #333333;
+            --border: #dddddd;
+            --btn-primary: #007bff;
+            --btn-success: #28a745;
+            --btn-info: #17a2b8;
+            --btn-warning: #ffc107;
+            --modal-bg: #ffffff;
+            --pre-bg: #f8f9fa;
+            --shadow: rgba(0,0,0,0.1);
+        }
+        [data-theme="dark"] {
+            --bg: #1a1a2e;
+            --card-bg: #16213e;
+            --text: #e0e0e0;
+            --border: #333355;
+            --btn-primary: #0d6efd;
+            --btn-success: #198754;
+            --btn-info: #0dcaf0;
+            --btn-warning: #ffca2c;
+            --modal-bg: #16213e;
+            --pre-bg: #0f1729;
+            --shadow: rgba(0,0,0,0.3);
+        }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        h1 { color: var(--text); margin-bottom: 20px; }
+        .theme-toggle { position: fixed; top: 20px; right: 20px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 50%; width: 44px; height: 44px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px var(--shadow); z-index: 100; }
+        .nav-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 10px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border); }
+        .nav-bar .path { flex: 1; font-family: monospace; padding: 8px; background: var(--pre-bg); border-radius: 4px; overflow-x: auto; white-space: nowrap; }
+        .bdinfo-banner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .bdinfo-banner h2 { margin: 0 0 10px 0; color: #856404; font-size: 18px; }
+        .bdinfo-banner .bd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 10px; }
+        .bdinfo-banner .bd-item { background: var(--card-bg); padding: 8px; border-radius: 4px; border: 1px solid var(--border); }
+        .bdinfo-banner .bd-label { font-size: 10px; opacity: 0.7; text-transform: uppercase; }
+        .bdinfo-banner .bd-value { font-weight: bold; }
+        .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        .file-card { background: var(--card-bg); border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px var(--shadow); border: 1px solid var(--border); }
+        .file-card:hover { box-shadow: 0 4px 8px var(--shadow); }
+        .file-name { font-weight: bold; margin-bottom: 10px; word-break: break-all; }
+        .file-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: var(--btn-primary); color: white; }
+        .btn-success { background: var(--btn-success); color: white; }
+        .btn-info { background: var(--btn-info); color: white; }
+        .btn-warning { background: var(--btn-warning); color: #333; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { background: var(--modal-bg); max-width: 900px; margin: 50px auto; padding: 20px; border-radius: 8px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--border); }
+        .close { float: right; cursor: pointer; font-size: 24px; }
+        pre { background: var(--pre-bg); padding: 15px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; color: var(--text); border: 1px solid var(--border); font-size: 12px; }
+        .spinner { border: 4px solid var(--border); border-top: 4px solid var(--btn-primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .screenshots { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 20px; }
+        .screenshot { border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+        .screenshot img { width: 100%; height: auto; display: block; }
+        .login-form { max-width: 300px; margin: 100px auto; padding: 30px; background: var(--card-bg); border-radius: 8px; box-shadow: 0 4px 6px var(--shadow); border: 1px solid var(--border); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); }
+        .checkbox-group { display: flex; align-items: center; gap: 8px; margin-bottom: 15px; }
+        .status-msg { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .status-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .bd-section { margin-top: 15px; padding: 10px; background: var(--pre-bg); border-radius: 4px; border: 1px solid var(--border); }
+        .bd-section h3 { margin-top: 0; color: var(--text); }
+        .bd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .bd-item { background: var(--card-bg); padding: 8px; border-radius: 4px; border: 1px solid var(--border); }
+        .bd-label { font-size: 11px; opacity: 0.7; text-transform: uppercase; }
+        .bd-value { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙</button>
+    
+    <div class="container" id="app">
+        <div id="login-view" class="login-form">
+            <h2>Login</h2>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password">
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="remember">
+                <label for="remember">Remember me</label>
+            </div>
+            <button class="btn btn-primary" onclick="login()">Login</button>
+        </div>
+        
+        <div id="main-view" style="display:none">
+            <h1>Seedbox Filebrowser</h1>
+            <div class="nav-bar">
+                <button class="btn btn-warning" onclick="goUp()">⬆ Parent Folder</button>
+                <button class="btn btn-primary" onclick="loadFiles('/')">🏠 Home</button>
+                <div class="path" id="current-path">/</div>
+            </div>
+            <div id="bdinfo-banner" class="bdinfo-banner" style="display:none;"></div>
+            <div class="file-grid" id="file-list"></div>
+        </div>
+    </div>
+    
+    <div id="mediainfo-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('mediainfo-modal')">&times;</span>
+            <h2>MediaInfo</h2>
+            <div id="mediainfo-status"></div>
+            <pre id="mediainfo-content"></pre>
+        </div>
+    </div>
+    
+    <div id="screenshot-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('screenshot-modal')">&times;</span>
+            <h2>Screenshots</h2>
+            <div id="screenshot-status"></div>
+            <div id="screenshot-content"></div>
+        </div>
+    </div>
+    
+    <div id="bdinfo-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('bdinfo-modal')">&times;</span>
+            <h2>BDInfo Report</h2>
+            <div id="bdinfo-status"></div>
+            <div id="bdinfo-content"></div>
+        </div>
+    </div>
+    
+    <script src="static/script.js"></script>
+    <script>
+        const BASE = '/seedbox-fb';
+        let currentPath = '/';
+        
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            document.getElementById('theme-btn').textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        (function() {
+            const saved = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            document.getElementById('theme-btn').textContent = saved === 'dark' ? '☀️' : '🌙';
+        })();
+        
+        (function() {
+            const savedUser = localStorage.getItem('sb_user');
+            const savedPass = localStorage.getItem('sb_pass');
+            if (savedUser && savedPass) {
+                document.getElementById('username').value = savedUser;
+                document.getElementById('password').value = savedPass;
+                document.getElementById('remember').checked = true;
+                login();
+            }
+        })();
+        
+        function login() {
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
+            if (user && pass) {
+                if (remember) {
+                    localStorage.setItem('sb_user', user);
+                    localStorage.setItem('sb_pass', pass);
+                } else {
+                    localStorage.removeItem('sb_user');
+                    localStorage.removeItem('sb_pass');
+                }
+                document.getElementById('login-view').style.display = 'none';
+                document.getElementById('main-view').style.display = 'block';
+                loadFiles(currentPath);
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('sb_user');
+            localStorage.removeItem('sb_pass');
+            document.getElementById('login-view').style.display = 'block';
+            document.getElementById('main-view').style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('remember').checked = false;
+        }
+        
+        async function loadFiles(path) {
+            currentPath = path;
+            document.getElementById('current-path').textContent = path;
+            const res = await fetch(BASE + '/api/list?path=' + encodeURIComponent(path));
+            const data = await res.json();
+            if (!data || !Array.isArray(data.files)) {
+                document.getElementById('file-list').innerHTML = '<p>Error: ' + (data && data.error ? data.error : 'Unknown error') + '</p>';
+                document.getElementById('bdinfo-banner').style.display = 'none';
+                return;
+            }
+            
+            // Show BDInfo banner if present
+            const banner = document.getElementById('bdinfo-banner');
+            if (data.bdinfo) {
+                const p = data.bdinfo.parsed;
+                let html = '<h2>📀 BDInfo Report: ' + data.bdinfo.filename + '</h2>';
+                html += '<div class="bd-grid">';
+                if (p.disc_label) html += '<div class="bd-item"><div class="bd-label">Disc Label</div><div class="bd-value">' + p.disc_label + '</div></div>';
+                if (p.disc_size) html += '<div class="bd-item"><div class="bd-label">Disc Size</div><div class="bd-value">' + p.disc_size + '</div></div>';
+                if (p.protection) html += '<div class="bd-item"><div class="bd-label">Protection</div><div class="bd-value">' + p.protection + '</div></div>';
+                if (p.playlist) html += '<div class="bd-item"><div class="bd-label">Playlist</div><div class="bd-value">#' + p.playlist.number + ' (' + p.playlist.size + ')</div></div>';
+                html += '</div>';
+                
+                if (p.video && p.video.length) {
+                    html += '<h3>Video Streams</h3><div class="bd-grid">';
+                    p.video.forEach(v => html += '<div class="bd-item"><div class="bd-value">' + v.info + '</div></div>');
+                    html += '</div>';
+                }
+                if (p.audio && p.audio.length) {
+                    html += '<h3>Audio Streams</h3><div class="bd-grid">';
+                    p.audio.forEach(a => html += '<div class="bd-item"><div class="bd-value">' + a.info + '</div></div>');
+                    html += '</div>';
+                }
+                if (p.subtitles && p.subtitles.length) {
+                    html += '<h3>Subtitle Streams</h3><div class="bd-grid">';
+                    p.subtitles.forEach(s => html += '<div class="bd-item"><div class="bd-value">' + s.info + '</div></div>');
+                    html += '</div>';
+                }
+                if (p.chapters && p.chapters.length) {
+                    html += '<h3>Chapters (' + p.chapters.length + ')</h3>';
+                    p.chapters.forEach(c => html += '<div class="bd-item"><div class="bd-label">Ch ' + c.chapter + '</div><div class="bd-value">' + c.info + '</div></div>');
+                }
+                if (p.quick_summary) {
+                    html += '<h3>Quick Summary</h3><pre>' + p.quick_summary + '</pre>';
+                }
+                banner.innerHTML = html;
+                banner.style.display = 'block';
+            } else {
+                banner.style.display = 'none';
+            }
+            
+            const container = document.getElementById('file-list');
+            container.innerHTML = '';
+            const files = data.files.sort((a, b) => {
+                if (a.isDir && !b.isDir) return -1;
+                if (!a.isDir && b.isDir) return 1;
+                return a.name.localeCompare(b.name);
+            });
+            files.forEach(f => {
+                const card = document.createElement('div');
+                card.className = 'file-card';
+                card.innerHTML = `
+                    <div class="file-name">${f.isDir ? '📁 ' : '📄 '}${f.name}</div>
+                    <div class="file-actions">
+                        ${f.isDir ? `<button class="btn btn-primary" onclick="loadFiles('${path}/${f.name}')">Open</button>` : `
+                        <button class="btn btn-info" onclick="showMediaInfo('${path}/${f.name}')">MediaInfo</button>
+                        ${f.isVideo ? `<button class="btn btn-success" onclick="captureScreens('${path}/${f.name}')">Screenshots</button>` : ''}
+                        ${f.name.toLowerCase().endsWith('.txt') || f.name.toLowerCase().endsWith('.bdinfo.txt') ? `<button class="btn btn-warning" onclick="showBDInfo('${path}/${f.name}')">BDInfo</button>` : ''}
+                        `}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        function goUp() {
+            if (currentPath === '/' || currentPath === '') return;
+            const parts = currentPath.split('/').filter(p => p);
+            parts.pop();
+            const parent = '/' + parts.join('/');
+            loadFiles(parent || '/');
+        }
+        
+        async function showMediaInfo(path) {
+            const modal = document.getElementById('mediainfo-modal');
+            const content = document.getElementById('mediainfo-content');
+            const status = document.getElementById('mediainfo-status');
+            modal.style.display = 'block';
+            content.textContent = 'Loading...';
+            status.innerHTML = '';
+            const res = await fetch(BASE + '/api/mi?file=' + encodeURIComponent(path));
+            const data = await res.json();
+            if (data.error) {
+                status.innerHTML = '<div class="status-msg status-error">' + data.error + '</div>';
+                content.textContent = '';
+            } else {
+                status.innerHTML = '<div class="status-msg status-success">MediaInfo saved to ' + data.txt_file + '</div>';
+                content.textContent = data.raw_text || '';
+            }
+        }
+        
+        async function showBDInfo(path) {
+            const modal = document.getElementById('bdinfo-modal');
+            const content = document.getElementById('bdinfo-content');
+            const status = document.getElementById('bdinfo-status');
+            modal.style.display = 'block';
+            content.innerHTML = '<div class="spinner"></div>';
+            status.innerHTML = '';
+            const res = await fetch(BASE + '/api/bdinfo?file=' + encodeURIComponent(path));
+            const data = await res.json();
+            if (data.error) {
+                status.innerHTML = '<div class="status-msg status-error">' + data.error + '</div>';
+                content.innerHTML = '';
+                return;
+            }
+            if (data.txt_file) {
+                status.innerHTML = '<div class="status-msg status-success">BDInfo saved to ' + data.txt_file + '</div>';
+            }
+            const p = data.parsed || {};
+            let html = '<div class="bd-section">';
+            if (p.disc_label) html += '<div class="bd-grid"><div class="bd-item"><div class="bd-label">Disc Label</div><div class="bd-value">' + p.disc_label + '</div></div>';
+            if (p.disc_size) html += '<div class="bd-item"><div class="bd-label">Disc Size</div><div class="bd-value">' + p.disc_size + '</div></div>';
+            if (p.protection) html += '<div class="bd-item"><div class="bd-label">Protection</div><div class="bd-value">' + p.protection + '</div></div>';
+            if (p.playlist) html += '<div class="bd-item"><div class="bd-label">Playlist</div><div class="bd-value">#' + p.playlist.number + ' (' + p.playlist.size + ')</div></div>';
+            html += '</div>';
+            
+            if (p.video && p.video.length) {
+                html += '<h3>Video Streams</h3><div class="bd-grid">';
+                p.video.forEach(v => html += '<div class="bd-item"><div class="bd-value">' + v.info + '</div></div>');
+                html += '</div>';
+            }
+            if (p.audio && p.audio.length) {
+                html += '<h3>Audio Streams</h3><div class="bd-grid">';
+                p.audio.forEach(a => html += '<div class="bd-item"><div class="bd-value">' + a.info + '</div></div>');
+                html += '</div>';
+            }
+            if (p.subtitles && p.subtitles.length) {
+                html += '<h3>Subtitle Streams</h3><div class="bd-grid">';
+                p.subtitles.forEach(s => html += '<div class="bd-item"><div class="bd-value">' + s.info + '</div></div>');
+                html += '</div>';
+            }
+            if (p.chapters && p.chapters.length) {
+                html += '<h3>Chapters (' + p.chapters.length + ')</h3>';
+                p.chapters.forEach(c => html += '<div class="bd-item"><div class="bd-label">Ch ' + c.chapter + '</div><div class="bd-value">' + c.info + '</div></div>');
+            }
+            if (p.quick_summary) {
+                html += '<h3>Quick Summary</h3><pre>' + p.quick_summary + '</pre>';
+            }
+            html += '</div>';
+            content.innerHTML = html;
+        }
+        
+        async function captureScreens(path) {
+            const modal = document.getElementById('screenshot-modal');
+            const content = document.getElementById('screenshot-content');
+            const status = document.getElementById('screenshot-status');
+            modal.style.display = 'block';
+            content.innerHTML = '<div class="spinner"></div>';
+            status.innerHTML = '';
+            
+            const params = new URLSearchParams({ n: 6, width: 1280, head: 5, tail: 5, fmt: 'jpg' });
+            const res = await fetch(BASE + '/api/ss?file=' + encodeURIComponent(path) + '&' + params);
+            const data = await res.json();
+            
+            if (data.error) {
+                status.innerHTML = '<div class="status-msg status-error">' + data.error + '</div>';
+                content.innerHTML = '';
+                return;
+            }
+            
+            status.innerHTML = '<div class="status-msg status-success">Screenshots saved to ' + data.save_dir + '</div>';
+            
+            let html = '<p>Duration: ' + data.meta.duration + 's | ' + data.files.length + ' screenshots</p>';
+            if (data.zip) {
+                const zipUrl = BASE + data.base + data.zip;
+                html += '<a href="' + zipUrl + '" download="screenshots.zip" class="btn btn-success" style="margin-bottom:15px;display:inline-block">Download ZIP</a>';
+            }
+            html += '<div class="screenshots">';
+            data.files.forEach(f => {
+                html += '<div class="screenshot"><img src="' + BASE + data.base + f + '" loading="lazy"></div>';
+            });
+            html += '</div>';
+            content.innerHTML = html;
+        }
+        
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+    </script>
+</body>
+</html>
