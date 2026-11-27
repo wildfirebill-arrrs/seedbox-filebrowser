@@ -105,29 +105,27 @@ server {
 
 ### Seedbox Installation
 
-This application is designed to work on UltraSeedbox and similar seedbox environments.
-
 #### Default Installation Path
-- Files are installed to `/home21/wildfirebill/.apps/`
-- Nginx config: `/home21/wildfirebill/.apps/nginx/`
-- FileBrowser data: `/home21/wildfirebill/.apps/filebrowser/`
-- Supervisor config: `/home21/wildfirebill/.config/supervisor/`
+- Files are installed to `~/.apps/`
+- Nginx config: `~/.apps/nginx/`
+- FileBrowser data: `~/.apps/filebrowser/`
+- Supervisor config: `~/.config/supervisor/`
 
-#### One-Click Installation (UltraSeedbox)
-1. Upload the `app/` directory contents to `/home21/wildfirebill/seedbox-fb/`
-2. Run: `supervisord -c /home21/wildfirebill/.config/supervisor/supervisord.conf`
+#### One-Click Installation
+1. Upload the `app/` directory contents to `~/seedbox-fb/`
+2. Run: `supervisord -c ~/.config/supervisor/supervisord.conf`
 3. Access: `https://yourdomain.com/seedbox-fb/`
-4. Login: `wildfirebill` / password (set via htpasswd)
+4. Login with your account credentials
 
 #### Manual Installation Steps
 1. **Upload files** to your seedbox home directory
 2. **Install Python deps**: `pip3 install flask waitress`
 3. **Install supervisord** (if not present): `apt-get install supervisor`
-4. **Start services**: `supervisord -c /home21/wildfirebill/.config/supervisor/supervisord.conf`
+4. **Start services**: `supervisord -c ~/.config/supervisor/supervisord.conf`
 5. **Configure nginx**: Copy `seedbox-fb.conf` to `~/.apps/nginx/proxy.d/`
-6. **Reload nginx**: `nginx -p /home21/wildfirebill/.apps/nginx/ -c nginx.conf -s reload`
+6. **Reload nginx**: `nginx -p ~/.apps/nginx/ -c nginx.conf -s reload`
 7. **Access**: `https://yourseedbox.ip/seedbox-fb/`
-8. **Login**: `wildfirebill` / your UltraSeedbox password
+8. **Login** with your account credentials
 
 ### Port Mapping
 | Service | Port | Description |
@@ -140,6 +138,21 @@ This application is designed to work on UltraSeedbox and similar seedbox environ
 Use your seedbox's built-in reverse proxy (Nginx/Apache) to forward `https://yourdomain.com/seedbox-fb/` to `http://127.0.0.1:18081`.
 
 ### Troubleshooting
-- Check logs: `tail -f /home21/wildfirebill/seedbox-fb/logs/flask.log`
+- Check logs: `tail -f ~/.seedbox-fb/logs/flask.log` or check your log system
+- Service status: `supervisorctl -c ~/.config/supervisor/supervisord.conf status`
+- If ports are busy, adjust `FIREBROWSER_PORT`, `MEDIAINFO_PORT`, `SCREENSHOT_PORT` env vars
+
+### Port Mapping
+| Service | Port | Description |
+|---------|------|-------------|
+| FileBrowser GUI | 18081 | Main web interface |
+| MediaInfo API | 18082 | Media metadata extraction |
+| Screenshot API | 18083 | Video screenshot generation |
+
+### HTTPS Setup
+Use your seedbox's built-in reverse proxy (Nginx/Apache) to forward `https://yourdomain.com/seedbox-fb/` to `http://127.0.0.1:18081`.
+
+### Troubleshooting
+- Check logs: `tail -f ~/.seedbox-fb/logs/flask.log` or check your log system
 - Service status: `supervisorctl -c /home21/wildfirebill/.config/supervisor/supervisord.conf status`
 - If ports are busy, adjust `FIREBROWSER_PORT`, `MEDIAINFO_PORT`, `SCREENSHOT_PORT` env vars
